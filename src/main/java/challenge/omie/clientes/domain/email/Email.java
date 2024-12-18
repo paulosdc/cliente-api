@@ -2,11 +2,13 @@ package challenge.omie.clientes.domain.email;
 
 import challenge.omie.clientes.domain.categoria.Categoria;
 import challenge.omie.clientes.domain.cliente.Cliente;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -29,6 +31,14 @@ public class Email implements Serializable {
     @JoinColumn(name = "categoria_id", nullable = false) 
     private Categoria categoria;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "emails")
-    private Set<Cliente> clientes;
+    private List<Cliente> clientes;
+
+     public Email(EmailDTO emailDTO) {
+        this.nome = emailDTO.getNome();
+        this.email = emailDTO.getEmail();
+        this.categoria = new Categoria();
+        this.categoria.setId(emailDTO.getCategoria());
+    }
 }

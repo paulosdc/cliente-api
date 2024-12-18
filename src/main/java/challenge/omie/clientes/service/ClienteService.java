@@ -5,6 +5,8 @@ import challenge.omie.clientes.domain.cliente.ClienteDTO;
 import challenge.omie.clientes.repository.ClienteRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,10 @@ public class ClienteService {
 
     public List<ClienteDTO> getClientes(){
         return clienteRepository.findAll().stream().map(ClienteDTO::new).toList();
+    }
+
+    public Page<ClienteDTO> getClientes(Pageable pageable) {
+        return clienteRepository.findAll(pageable).map(ClienteDTO::new);
     }
 
     public Optional<Cliente> getClienteById(Long id){

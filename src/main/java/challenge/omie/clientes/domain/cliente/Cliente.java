@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 import challenge.omie.clientes.domain.email.Email;
 import challenge.omie.clientes.domain.status.Status;
@@ -38,12 +38,14 @@ public class Cliente implements Serializable {
         joinColumns = @JoinColumn(name = "cliente_id"),
         inverseJoinColumns = @JoinColumn(name = "email_id")
     )
-    private Set<Email> emails;
+    private List<Email> emails;
 
     public Cliente(ClienteDTO clienteDTO) {
         this.inscricao = clienteDTO.getInscricao();
         this.nome = clienteDTO.getNome();
         this.apelido = clienteDTO.getApelido();
         this.status = clienteDTO.getStatus();
+        this.urlFoto = clienteDTO.getUrlFoto();
+        this.emails = clienteDTO.getEmails().stream().map(Email::new).toList();;
     }
 }

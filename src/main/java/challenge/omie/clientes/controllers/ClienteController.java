@@ -11,19 +11,18 @@ import challenge.omie.clientes.service.ClienteService;
 import challenge.omie.clientes.service.EmailService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
 
 @RestController
 @RequestMapping("/cliente")
+@CrossOrigin(origins = "*")
 public class ClienteController {
 
     @Autowired
@@ -35,9 +34,17 @@ public class ClienteController {
     @Autowired
     private CategoriaService categoriaService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<?> getAllClientes() {
         List<ClienteDTO> clientes = clienteService.getClientes();
+        return ResponseEntity.ok(clientes);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ClienteDTO>> getAllClientes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        Page<ClienteDTO> clientes = clienteService.getClientes(PageRequest.of(page, size));
         return ResponseEntity.ok(clientes);
     }
 
@@ -53,7 +60,7 @@ public class ClienteController {
         Cliente cliente = new Cliente(clienteDTO);
 
         if (clienteDTO.getEmails() != null) {
-            Set<Email> emails = new HashSet<>();
+            List<Email> emails = new ArrayList<>();
             for (EmailDTO emailDTO : clienteDTO.getEmails()) {
                 Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria());
                 if (categoria.isPresent()) {
@@ -89,7 +96,7 @@ public class ClienteController {
             }
 
             if (clienteDTO.getEmails() != null) {
-                Set<Email> emails = new HashSet<>();
+                List<Email> emails = new ArrayList<>();
                 for (EmailDTO emailDTO : clienteDTO.getEmails()) {
                     Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria());
                     if (categoria.isPresent()) {
