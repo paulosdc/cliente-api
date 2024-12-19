@@ -9,7 +9,7 @@ import challenge.omie.clientes.domain.status.Status;
 import challenge.omie.clientes.service.CategoriaService;
 import challenge.omie.clientes.service.ClienteService;
 import challenge.omie.clientes.service.EmailService;
-import jakarta.validation.Valid;
+import challenge.omie.clientes.utils.ValidationUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +34,9 @@ public class ClienteController {
 
     @Autowired
     private CategoriaService categoriaService;
+
+    @Autowired
+    private ValidationUtils validationUtils;
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllClientes() {
@@ -58,10 +60,9 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<?> criarCliente(@RequestBody @Valid ClienteDTO clienteDTO) {
-        if (!isValidCpfOrCnpj(clienteDTO.getInscricao())) {
-            return ResponseEntity.badRequest().body("Inscrição inválida. Deve ser um CPF ou CNPJ válido.");
-        }
+    public ResponseEntity<?> criarCliente(@RequestBody ClienteDTO clienteDTO) {
+        if(!validationUtils.isValidDTO(clienteDTO).isEmpty()) 
+            return ResponseEntity.badRequest().body(validationUtils.isValidDTO(clienteDTO));
 
         Cliente cliente = new Cliente(clienteDTO);
 
@@ -70,10 +71,7 @@ public class ClienteController {
             for (EmailDTO emailDTO : clienteDTO.getEmails()) {
                 Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria().getId());
                 if (categoria.isPresent()) {
-                    Email email = new Email();
-                    email.setNome(emailDTO.getNome());
-                    email.setEmail(emailDTO.getEmail());
-                    email.setCategoria(categoria.get());
+                    Email email = new Email(emailDTO);
                     emails.add(emailService.salvar(email));
                 }
             }
@@ -85,10 +83,9 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody @Valid ClienteDTO clienteDTO) {
-        if (!isValidCpfOrCnpj(clienteDTO.getInscricao())) {
-            return ResponseEntity.badRequest().body("Inscrição inválida. Deve ser um CPF ou CNPJ válido.");
-        }
+    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO) {
+        if(!validationUtils.isValidDTO(clienteDTO).isEmpty()) 
+            return ResponseEntity.badRequest().body(validationUtils.isValidDTO(clienteDTO));
 
         Optional<Cliente> optionalCliente = clienteService.getClienteById(id);
     
@@ -106,6 +103,8 @@ public class ClienteController {
             if (clienteDTO.getEmails() != null) {
                 List<Email> newEmails = new ArrayList<>();
                 for (EmailDTO emailDTO : clienteDTO.getEmails()) {
+                    if(!validationUtils.isValidDTO(emailDTO).isEmpty()) 
+                        return ResponseEntity.badRequest().body(validationUtils.isValidDTO(emailDTO));
                     Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria().getId());
                     if (categoria.isPresent()) {
                         Email email = new Email(emailDTO);
@@ -140,87 +139,6 @@ public class ClienteController {
         cliente.setStatus(Status.DESATIVADO);
         clienteService.salvar(cliente);
         return ResponseEntity.ok().body("Cliente desativado com sucesso");
-    }
-
-    private boolean isValidCpfOrCnpj(String inscricao) {
-        return inscricao != null && (isValidCpf(inscricao) || isValidCnpj(inscricao));
-    }
-
-    public static boolean isValidCpf(String cpf) {
-        cpf = cpf.replaceAll("[^\\d]", "");
-
-        if (cpf.length() != 11) {
-            return false;
-        }
-
-        if (cpf.matches("(\\d)\\1{10}")) {
-            return false;
-        }
-
-        try {
-            int sum = 0;
-            for (int i = 0; i < 9; i++) {
-                sum += Character.getNumericValue(cpf.charAt(i)) * (10 - i);
-            }
-            int firstDigit = 11 - (sum % 11);
-            if (firstDigit >= 10) {
-                firstDigit = 0;
-            }
-
-            if (firstDigit != Character.getNumericValue(cpf.charAt(9))) {
-                return false;
-            }
-
-            sum = 0;
-            for (int i = 0; i < 10; i++) {
-                sum += Character.getNumericValue(cpf.charAt(i)) * (11 - i);
-            }
-            int secondDigit = 11 - (sum % 11);
-            if (secondDigit >= 10) {
-                secondDigit = 0;
-            }
-
-            return secondDigit == Character.getNumericValue(cpf.charAt(10));
-        } catch (InputMismatchException e) {
-            return false;
-        }
-    }
-
-    public static boolean isValidCnpj(String cnpj) {
-        cnpj = cnpj.replaceAll("[^\\d]", "");
-
-        if (cnpj.length() != 14) {
-            return false;
-        }
-
-        if (cnpj.matches("(\\d)\\1{13}")) {
-            return false;
-        }
-
-        try {
-            int[] weights1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
-            int[] weights2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
-
-            int sum = 0;
-            for (int i = 0; i < 12; i++) {
-                sum += Character.getNumericValue(cnpj.charAt(i)) * weights1[i];
-            }
-            int firstDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-
-            if (firstDigit != Character.getNumericValue(cnpj.charAt(12))) {
-                return false;
-            }
-
-            sum = 0;
-            for (int i = 0; i < 13; i++) {
-                sum += Character.getNumericValue(cnpj.charAt(i)) * weights2[i];
-            }
-            int secondDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-
-            return secondDigit == Character.getNumericValue(cnpj.charAt(13));
-        } catch (InputMismatchException e) {
-            return false;
-        }
     }
 
 }

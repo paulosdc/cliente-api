@@ -35,7 +35,6 @@ public class Cliente implements Serializable {
     @NotEmpty @NotBlank
     private String urlFoto;
 
-    @NotEmpty @NotBlank
     @Enumerated(EnumType.STRING)
     private Status status;
 

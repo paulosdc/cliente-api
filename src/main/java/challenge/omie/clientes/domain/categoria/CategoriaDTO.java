@@ -2,8 +2,6 @@ package challenge.omie.clientes.domain.categoria;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +16,6 @@ public class CategoriaDTO {
     
     Long id;
 
-    @NotBlank @NotNull
     String nome;
 
     public CategoriaDTO(Categoria categoria) {

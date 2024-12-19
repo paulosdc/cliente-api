@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import challenge.omie.clientes.domain.categoria.Categoria;
 import challenge.omie.clientes.domain.categoria.CategoriaDTO;
 import challenge.omie.clientes.service.CategoriaService;
-import jakarta.validation.Valid;
+import challenge.omie.clientes.utils.ValidationUtils;
 
 @RestController
 @RequestMapping("/categoria")
@@ -28,6 +28,9 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
+    @Autowired
+    private ValidationUtils validationUtils;
+
     @GetMapping
     public ResponseEntity<?> getAllCategorias() {
         List<CategoriaDTO> clientes = categoriaService.getCategorias();
@@ -35,14 +38,18 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<?> saveCategoria(@RequestBody @Valid CategoriaDTO categoria) {
+    public ResponseEntity<?> saveCategoria(@RequestBody CategoriaDTO categoria) {
+        if(!validationUtils.isValidDTO(categoria).isEmpty()) 
+            return ResponseEntity.badRequest().body(validationUtils.isValidDTO(categoria));
         Categoria newCategoria = new Categoria(categoria);
         categoriaService.salvar(newCategoria);
         return ResponseEntity.ok().body("Categoria criada com sucesso!");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategoria(@PathVariable Long id, @RequestBody @Valid CategoriaDTO categoria) {
+    public ResponseEntity<?> updateCategoria(@PathVariable Long id, @RequestBody CategoriaDTO categoria) {
+        if(!validationUtils.isValidDTO(categoria).isEmpty()) 
+            return ResponseEntity.badRequest().body(validationUtils.isValidDTO(categoria));
         try{
             Optional<Categoria> optionalCategoria = categoriaService.getCategoriaById(id);
             if(optionalCategoria.isEmpty()) return ResponseEntity.notFound().build();
