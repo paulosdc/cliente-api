@@ -53,7 +53,9 @@ public class CategoriaController {
         try{
             Optional<Categoria> optionalCategoria = categoriaService.getCategoriaById(id);
             if(optionalCategoria.isEmpty()) return ResponseEntity.notFound().build();
-            categoriaService.salvar(new Categoria(categoria));
+            Categoria categoriaToUpdate = new Categoria(categoria);
+            categoriaToUpdate.setId(id);
+            categoriaService.salvar(categoriaToUpdate);
         } catch (Exception e){
             return ResponseEntity.internalServerError().body("Erro ao atualizar categoria.");
         }
