@@ -1,6 +1,8 @@
 package challenge.omie.clientes.domain.cliente;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.io.Serializable;
@@ -21,14 +23,19 @@ public class Cliente implements Serializable {
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty @NotBlank
     private String inscricao;
 
+    @NotEmpty @NotBlank
     private String nome;
 
+    @NotEmpty @NotBlank
     private String apelido;
 
+    @NotEmpty @NotBlank
     private String urlFoto;
 
+    @NotEmpty @NotBlank
     @Enumerated(EnumType.STRING)
     private Status status;
 

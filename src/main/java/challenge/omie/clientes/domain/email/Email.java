@@ -5,6 +5,8 @@ import challenge.omie.clientes.domain.cliente.Cliente;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
 import java.io.Serializable;
@@ -22,8 +24,9 @@ public class Email implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty @NotBlank
     private String nome;
-
+    
     @Column(name = "email", nullable = false)
     private String email;
 

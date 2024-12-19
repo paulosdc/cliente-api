@@ -4,6 +4,8 @@ import java.util.List;
 
 import challenge.omie.clientes.domain.email.EmailDTO;
 import challenge.omie.clientes.domain.status.Status;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,14 +19,19 @@ public class ClienteDTO {
 
     private Long id;
 
+    @NotBlank @NotNull
     private String inscricao;
 
+    @NotBlank @NotNull
     private String nome;
 
+    @NotBlank @NotNull
     private String apelido;
 
+    @NotBlank @NotNull
     private String urlFoto;
 
+    @NotBlank @NotNull
     private Status status;
 
     private List<EmailDTO> emails;

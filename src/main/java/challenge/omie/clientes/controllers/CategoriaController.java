@@ -1,6 +1,7 @@
 package challenge.omie.clientes.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import challenge.omie.clientes.domain.categoria.Categoria;
 import challenge.omie.clientes.domain.categoria.CategoriaDTO;
 import challenge.omie.clientes.service.CategoriaService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/categoria")
@@ -33,16 +35,18 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<?> saveCategoria(@RequestBody CategoriaDTO categoria) {
+    public ResponseEntity<?> saveCategoria(@RequestBody @Valid CategoriaDTO categoria) {
         Categoria newCategoria = new Categoria(categoria);
         categoriaService.salvar(newCategoria);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body("Categoria criada com sucesso!");
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateCategoria(@RequestBody Categoria categoria) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCategoria(@PathVariable Long id, @RequestBody @Valid CategoriaDTO categoria) {
         try{
-            categoriaService.salvar(categoria);
+            Optional<Categoria> optionalCategoria = categoriaService.getCategoriaById(id);
+            if(optionalCategoria.isEmpty()) return ResponseEntity.notFound().build();
+            categoriaService.salvar(new Categoria(categoria));
         } catch (Exception e){
             return ResponseEntity.internalServerError().body("Erro ao atualizar categoria.");
         }
@@ -52,6 +56,8 @@ public class CategoriaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCategoria(@PathVariable Long id){
         try{
+            Optional<Categoria> optionalCategoria = categoriaService.getCategoriaById(id);
+            if(optionalCategoria.isEmpty()) return ResponseEntity.notFound().build();
             categoriaService.deletar(id);
             return ResponseEntity.ok("Categoria excluída com sucesso!");
         } catch (Exception e){
