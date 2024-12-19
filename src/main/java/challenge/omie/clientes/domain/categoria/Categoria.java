@@ -25,6 +25,7 @@ public class Categoria {
     private String nome;
 
     public Categoria(CategoriaDTO categoriaDTO){
+        this.id = categoriaDTO.getId();
         this.nome = categoriaDTO.getNome();
     }
 }

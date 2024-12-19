@@ -9,6 +9,7 @@ import challenge.omie.clientes.domain.status.Status;
 import challenge.omie.clientes.service.CategoriaService;
 import challenge.omie.clientes.service.ClienteService;
 import challenge.omie.clientes.service.EmailService;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -62,7 +63,7 @@ public class ClienteController {
         if (clienteDTO.getEmails() != null) {
             List<Email> emails = new ArrayList<>();
             for (EmailDTO emailDTO : clienteDTO.getEmails()) {
-                Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria());
+                Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria().getId());
                 if (categoria.isPresent()) {
                     Email email = new Email();
                     email.setNome(emailDTO.getNome());
@@ -79,7 +80,7 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO) {
+    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody @Valid ClienteDTO clienteDTO) {
         Optional<Cliente> optionalCliente = clienteService.getClienteById(id);
 
         if (optionalCliente.isPresent()) {
@@ -89,6 +90,7 @@ public class ClienteController {
             cliente.setNome(clienteDTO.getNome());
             cliente.setApelido(clienteDTO.getApelido());
             cliente.setStatus(clienteDTO.getStatus());
+            cliente.setUrlFoto(clienteDTO.getUrlFoto());
             
             List<Email> oldEmails = new ArrayList<>();
             for(Email email : cliente.getEmails()){
@@ -98,24 +100,16 @@ public class ClienteController {
             if (clienteDTO.getEmails() != null) {
                 List<Email> emails = new ArrayList<>();
                 for (EmailDTO emailDTO : clienteDTO.getEmails()) {
-                    Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria());
+                    Optional<Categoria> categoria = categoriaService.getCategoriaById(emailDTO.getCategoria().getId());
                     if (categoria.isPresent()) {
-                        Email email = new Email();
-                        email.setNome(emailDTO.getNome());
-                        email.setEmail(emailDTO.getEmail());
-                        email.setCategoria(categoria.get());
-                        emails.add(email);
+                        Email email = new Email(emailDTO);
+                        emails.add(emailService.salvar(email));
                     } else return ResponseEntity.badRequest().body("A categoria escolhida não existe. Cadastre-a antes de seguir!");
                 }
-                emails.stream().forEach(email -> emailService.salvar(email));
                 cliente.setEmails(emails);
             }
 
             clienteService.salvar(cliente);
-
-            for(Email emailToDelete : oldEmails){
-                emailService.deletar(emailToDelete);
-            }
             return ResponseEntity.ok().body("Cliente atualizado com sucesso!");
         } else {
             return ResponseEntity.notFound().build();

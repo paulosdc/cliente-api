@@ -36,9 +36,9 @@ public class Email implements Serializable {
     private List<Cliente> clientes;
 
      public Email(EmailDTO emailDTO) {
+        this.id = emailDTO.getId();
         this.nome = emailDTO.getNome();
         this.email = emailDTO.getEmail();
-        this.categoria = new Categoria();
-        this.categoria.setId(emailDTO.getCategoria());
+        this.categoria = new Categoria(emailDTO.getCategoria());
     }
 }
